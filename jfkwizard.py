@@ -38,11 +38,12 @@ class GetData(webapp2.RequestHandler):
 	def get(self):
 		self.response.headers['Content-Type'] = 'application/json'
 		obj = fetchJson()
+		current_time = obj["CurrentTime"]
 		out = []
 		for trip in [x for x in obj['Trips'] if x['Destination'] == 'Alewife']:
 			for jfk_pred in [x['Seconds'] for x in trip['Predictions'] if x['Stop'] == "JFK/UMass"]:
 				first_stop = trip['Predictions'][0]['Stop']
-				row = {"secs":jfk_pred,'trip_id': trip['TripID']}
+				row = {"secs":jfk_pred,'trip_id': trip['TripID'],"pred_time":jfk_pred+current_time}
 				if first_stop == "JFK/UMass":
 					cached = memcache.get(trip['TripID'])
 					if cached is None:
@@ -55,7 +56,7 @@ class GetData(webapp2.RequestHandler):
 				elif first_stop in braintree_stops:
 					row["branch"] = "Braintree"
 				out.append(row)
-		out.sort(key=lambda k: k['secs'])
+		out.sort(key=lambda k: k['pred_time'])
 		self.response.write(json.dumps(out))
 
 class RefreshTrips(webapp2.RequestHandler):
