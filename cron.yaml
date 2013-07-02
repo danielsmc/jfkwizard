@@ -1,4 +1,5 @@
 cron:
 - description: refresh the data
   url: /refresh
-  schedule: every 1 minutes
+  schedule: every 1 minutes from 05:00 to 01:00
+  timezone: America/New_York
