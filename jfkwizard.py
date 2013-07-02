@@ -2,27 +2,21 @@ import json
 import urllib2
 import webapp2
 
-from google.appengine.ext import db
-
+from google.appengine.api import memcache
 
 ashmont_stops = set(["Ashmont","Shawmut","Fields Corner","Savin Hill"])
 braintree_stops = set(["Braintree","Quincy Adams","Quincy Center","Wollaston","North Quincy"])
 
 
-class Trip(db.Model):
-	"""Models a trip. For now, just notes ashmont/btree"""
-	branch = db.StringProperty(indexed=False,choices=['Ashmont','Braintree'])
 
 def putTrip(trip_data):
 	if len(trip_data['Predictions']) > 0:
-		trip = Trip(key_name = trip_data['TripID'])
+		trip_id = trip_data['TripID']
 		first_stop = trip_data['Predictions'][0]['Stop']
 		if first_stop in ashmont_stops:
-			trip.branch = "Ashmont"
-			trip.put()
+			memcache.add(key=trip_id,value="Ashmont",time=3600)
 		elif first_stop in braintree_stops:
-			trip.branch = "Braintree"
-			trip.put()
+			memcache.add(key=trip_id,value="Braintree",time=3600)
 	
 
 class MainPage(webapp2.RequestHandler):
@@ -42,12 +36,12 @@ class GetData(webapp2.RequestHandler):
 				first_stop = trip['Predictions'][0]['Stop']
 				row = {"secs":jfk_pred,'trip_id': trip['TripID']}
 				if first_stop == "JFK/UMass":
-					trip_obj = Trip.get_by_key_name(trip['TripID'])
-					if trip_obj is None:
+					cached = memcache.get(trip['TripID'])
+					if cached is None:
 						row["branch"] = "Unknown"
 					else:
-						row["branch"] = trip_obj.branch
-						row["from_db"] =True
+						row["branch"] = cached
+						row["from_mc"] =True
 				elif first_stop in ashmont_stops:
 					row["branch"] = "Ashmont"
 				elif first_stop in braintree_stops:
