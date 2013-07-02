@@ -2,6 +2,21 @@ body {
 	font-family: sans-serif;
 }
 
-h1 {
+h1, #caveat {
 	text-align: center;
+	font-weight: normal;
+}
+
+#platform {
+	font-weight: bold;
+}
+
+#wha {
+	position:fixed;
+	left:0%;
+	bottom:0%;
+}
+
+a {
+	color: black;
 }

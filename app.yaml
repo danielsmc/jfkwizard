@@ -1,5 +1,5 @@
 application: jfkwizard
-version: 5
+version: 6
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -8,6 +8,9 @@ handlers:
 - url: /
   static_files: static/index.html
   upload: static/index.html
+- url: /colophon
+  static_files: static/colophon.html
+  upload: static/colophon.html
 - url: /js
   static_dir: static/js
 - url: /css
