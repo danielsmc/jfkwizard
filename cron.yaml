@@ -1,0 +1,4 @@
+cron:
+- description: refresh the data
+  url: /refresh
+  schedule: every 1 minutes
