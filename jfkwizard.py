@@ -1,8 +1,8 @@
 import json
-import urllib2
 import webapp2
 
 from google.appengine.api import memcache
+from google.appengine.api import urlfetch
 
 ashmont_stops = set(["Ashmont","Shawmut","Fields Corner","Savin Hill"])
 braintree_stops = set(["Braintree","Quincy Adams","Quincy Center","Wollaston","North Quincy"])
@@ -17,7 +17,15 @@ def putTrip(trip_data):
 			memcache.add(key=trip_id,value="Ashmont",time=3600)
 		elif first_stop in braintree_stops:
 			memcache.add(key=trip_id,value="Braintree",time=3600)
-	
+
+def fetchJson():
+	url = "http://developer.mbta.com/lib/rthr/red.json"
+	result = memcache.get('json')
+	if result is not None:
+		return result
+	result = json.loads(urlfetch.fetch(url, headers = {'Cache-Control' : 'max-age=0'}).content)['TripList']
+	memcache.add(key='json',value=result,time=10)
+	return result
 
 class MainPage(webapp2.RequestHandler):
 
@@ -29,7 +37,7 @@ class MainPage(webapp2.RequestHandler):
 class GetData(webapp2.RequestHandler):
 	def get(self):
 		self.response.headers['Content-Type'] = 'application/json'
-		obj = json.load(urllib2.urlopen("http://developer.mbta.com/lib/rthr/red.json"))['TripList']
+		obj = fetchJson()
 		out = []
 		for trip in [x for x in obj['Trips'] if x['Destination'] == 'Alewife']:
 			for jfk_pred in [x['Seconds'] for x in trip['Predictions'] if x['Stop'] == "JFK/UMass"]:
@@ -53,7 +61,7 @@ class GetData(webapp2.RequestHandler):
 class RefreshTrips(webapp2.RequestHandler):
 	def get(self):
 		self.response.headers['Content-Type'] = 'application/json'
-		obj = json.load(urllib2.urlopen("http://developer.mbta.com/lib/rthr/red.json"))['TripList']
+		obj = fetchJson()
 		[putTrip(x) for x in obj['Trips'] if x['Destination'] == 'Alewife']
 		self.response.write(json.dumps({'success':True}))
 
