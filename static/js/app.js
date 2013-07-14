@@ -2,10 +2,27 @@
 
 var latest_json = [];
 
+
 var fetchJson = function() {
 	d3.json("/data", handleJson);
 };
 
+
+var setLoaded= function() { // WARNING: stupid closure tricks
+	var loaded = false;
+	return function(newState) {
+		if (newState !== loaded) {
+			loaded = newState;
+			if (loaded) {
+				d3.selectAll(".loading").style("display","none");
+				d3.selectAll(".loaded").style("display","block");
+			} else {
+				d3.selectAll(".loading").style("display","block");
+				d3.selectAll(".loaded").style("display","none");
+			}
+		}
+	}
+}();
 
 
 var handleJson = function(json) {
@@ -41,11 +58,20 @@ var refreshHed = function() {
 		}
 	}
 
-	if (hed !== d3.select("#platform").text())
-		d3.select("#platform").text(hed);
+	if (hed === "LOL nope") {
+		setLoaded(false);
+		if (latest_json.length > 0) { // That is, if we just have very stale json
+			fetchJson()
+		}
+	} else {
+		setLoaded(true);
 
-	if (caveat !== d3.select("#caveat").text())
-		d3.select("#caveat").text(caveat);
+		if (hed !== d3.select("#platform").text())
+			d3.select("#platform").text(hed);
+
+		if (caveat !== d3.select("#caveat").text())
+			d3.select("#caveat").text(caveat);
+	}
 }
 
 var refreshPointers = function() {

@@ -7,6 +7,10 @@ h1, #caveat {
 	font-weight: normal;
 }
 
+.loaded {
+	display: none;
+}
+
 #platform {
 	font-weight: bold;
 }
