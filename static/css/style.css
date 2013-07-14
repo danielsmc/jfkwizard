@@ -23,6 +23,7 @@ h1, #caveat {
 
 #install-hint {
 	display: none;
+	text-align: center;
 }
 
 .share-icon {
