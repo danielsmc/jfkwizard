@@ -11,10 +11,19 @@ h1, #caveat {
 	font-weight: bold;
 }
 
-#wha {
+#bottom-junk {
 	position:fixed;
 	left:0%;
 	bottom:0%;
+}
+
+#install-hint {
+	display: none;
+}
+
+.share-icon {
+	height:0.75em;
+	display: inline;
 }
 
 a {

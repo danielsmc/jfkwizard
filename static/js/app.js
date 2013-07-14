@@ -95,6 +95,10 @@ var refreshScreen = function() {
 	refreshPointers();
 }
 
+if (window.navigator.standalone === false) {
+	d3.select("#install-hint").style("display","block");
+}
+
 setInterval(refreshScreen,100);
 setInterval(fetchJson,10*1000);
 fetchJson();
