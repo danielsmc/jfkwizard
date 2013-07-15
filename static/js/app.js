@@ -125,6 +125,10 @@ if (window.navigator.standalone === false) {
 	d3.select("#install-hint").style("display","block");
 }
 
+document.ontouchmove = function(e){
+     e.preventDefault();
+}
+
 setInterval(refreshScreen,100);
 setInterval(fetchJson,10*1000);
 fetchJson();
