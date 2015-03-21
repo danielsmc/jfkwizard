@@ -10,64 +10,64 @@ braintree_stops = set(["Braintree","Quincy Adams","Quincy Center","Wollaston","N
 
 
 def putTrip(trip_data):
-	if len(trip_data['Predictions']) > 0:
-		trip_id = trip_data['TripID']
-		first_stop = trip_data['Predictions'][0]['Stop']
-		if first_stop in ashmont_stops:
-			memcache.add(key=trip_id,value="Ashmont",time=3600)
-		elif first_stop in braintree_stops:
-			memcache.add(key=trip_id,value="Braintree",time=3600)
+    if len(trip_data['Predictions']) > 0:
+        trip_id = trip_data['TripID']
+        first_stop = trip_data['Predictions'][0]['Stop']
+        if first_stop in ashmont_stops:
+            memcache.add(key=trip_id,value="Ashmont",time=3600)
+        elif first_stop in braintree_stops:
+            memcache.add(key=trip_id,value="Braintree",time=3600)
 
 def fetchJson():
-	url = "http://developer.mbta.com/lib/rthr/red.json"
-	result = memcache.get('json')
-	if result is not None:
-		return result
-	result = json.loads(urlfetch.fetch(url, headers = {'Cache-Control' : 'max-age=0'}).content)['TripList']
-	memcache.add(key='json',value=result,time=10)
-	return result
+    url = "http://developer.mbta.com/lib/rthr/red.json"
+    result = memcache.get('json')
+    if result is not None:
+        return result
+    result = json.loads(urlfetch.fetch(url, headers = {'Cache-Control' : 'max-age=0'}).content)['TripList']
+    memcache.add(key='json',value=result,time=10)
+    return result
 
 class MainPage(webapp2.RequestHandler):
 
-	def get(self):
-		self.response.headers['Content-Type'] = 'application/json'
-		obj = json.load(urllib2.urlopen("http://developer.mbta.com/lib/rthr/red.json"))
-		self.response.write(json.dumps(obj['TripList']))
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = json.load(urllib2.urlopen("http://developer.mbta.com/lib/rthr/red.json"))
+        self.response.write(json.dumps(obj['TripList']))
 
 class GetData(webapp2.RequestHandler):
-	def get(self):
-		self.response.headers['Content-Type'] = 'application/json'
-		obj = fetchJson()
-		current_time = obj["CurrentTime"]
-		out = []
-		for trip in [x for x in obj['Trips'] if x['Destination'] == 'Alewife']:
-			for jfk_pred in [x['Seconds'] for x in trip['Predictions'] if x['Stop'] == "JFK/UMass"]:
-				first_stop = trip['Predictions'][0]['Stop']
-				row = {"secs":jfk_pred,'trip_id': trip['TripID'],"pred_time":jfk_pred+current_time}
-				if first_stop == "JFK/UMass":
-					cached = memcache.get(trip['TripID'])
-					if cached is None:
-						row["branch"] = "Unknown"
-					else:
-						row["branch"] = cached
-						row["from_mc"] =True
-				elif first_stop in ashmont_stops:
-					row["branch"] = "Ashmont"
-				elif first_stop in braintree_stops:
-					row["branch"] = "Braintree"
-				out.append(row)
-		out.sort(key=lambda k: k['pred_time'])
-		self.response.write(json.dumps(out))
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = fetchJson()
+        current_time = obj["CurrentTime"]
+        out = []
+        for trip in [x for x in obj['Trips'] if x['Destination'] == 'Alewife']:
+            for jfk_pred in [x['Seconds'] for x in trip['Predictions'] if x['Stop'] == "JFK/UMass"]:
+                first_stop = trip['Predictions'][0]['Stop']
+                row = {"secs":jfk_pred,'trip_id': trip['TripID'],"pred_time":jfk_pred+current_time}
+                if first_stop == "JFK/UMass":
+                    cached = memcache.get(trip['TripID'])
+                    if cached is None:
+                        row["branch"] = "Unknown"
+                    else:
+                        row["branch"] = cached
+                        row["from_mc"] =True
+                elif first_stop in ashmont_stops:
+                    row["branch"] = "Ashmont"
+                elif first_stop in braintree_stops:
+                    row["branch"] = "Braintree"
+                out.append(row)
+        out.sort(key=lambda k: k['pred_time'])
+        self.response.write(json.dumps(out))
 
 class RefreshTrips(webapp2.RequestHandler):
-	def get(self):
-		self.response.headers['Content-Type'] = 'application/json'
-		obj = fetchJson()
-		[putTrip(x) for x in obj['Trips'] if x['Destination'] == 'Alewife']
-		self.response.write(json.dumps({'success':True}))
+    def get(self):
+        self.response.headers['Content-Type'] = 'application/json'
+        obj = fetchJson()
+        [putTrip(x) for x in obj['Trips'] if x['Destination'] == 'Alewife']
+        self.response.write(json.dumps({'success':True}))
 
 application = webapp2.WSGIApplication([
-	('/', MainPage),
-	('/refresh', RefreshTrips),
-	('/data', GetData),
-	], debug=True)
+    ('/', MainPage),
+    ('/refresh', RefreshTrips),
+    ('/data', GetData),
+    ], debug=True)
