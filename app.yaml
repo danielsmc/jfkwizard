@@ -1,13 +1,10 @@
 application: jfkwizard
-version: 6
+version: 7
 runtime: python27
 api_version: 1
 threadsafe: true
 
 handlers:
-- url: /
-  static_files: static/index.html
-  upload: static/index.html
 - url: /colophon
   static_files: static/colophon.html
   upload: static/colophon.html
@@ -19,3 +16,9 @@ handlers:
   static_dir: static/img
 - url: /.*
   script: jfkwizard.application
+
+libraries:
+- name: webapp2
+  version: latest
+- name: jinja2
+  version: latest

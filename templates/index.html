@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta http-equiv="refresh" content="10">
+    <link rel="apple-touch-icon-precomposed" href="img/icon.png"/>
+    <title>JFK Wizard</title>
+    <style>
+    html {
+        box-sizing: border-box;
+    }
+
+    *, *:before, *:after {
+        box-sizing: inherit;
+    }
+
+    body {
+        font-family: sans-serif;
+    }
+
+    h1, #caveat {
+        text-align: center;
+        font-weight: normal;
+    }
+
+    .platform {
+        font-weight: bold;
+    }
+
+    #wha {
+        display: block;
+        position:fixed;
+        left:0%;
+        bottom:0%;
+    }
+
+    .install-hint {
+        display: none;
+        text-align: center;
+    }
+
+    .show-hint .install-hint {
+        display: block;
+    }
+
+    .share-icon {
+        height:0.75em;
+        display: inline;
+    }
+
+    a {
+        color: black;
+    }
+
+    #trains {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border: 0;
+        padding: 0;
+    }
+
+    .train {
+        position: absolute;
+        left: 50%;
+        list-style: none;
+        transform: rotate(90deg);
+        -webkit-transform: rotate(90deg);
+    }
+
+    .train-Ashmont {
+        left: auto;
+        right: 0%;
+        transform: rotate(90deg) scaleY(-1);
+        -webkit-transform: rotate(90deg) scaleY(-1);
+    } 
+    .train-Ashmont:after {
+        content: "A";
+    }
+
+    .train-Braintree {
+        left: 0;
+    }
+    .train-Braintree:after {
+        content: "B";
+    }
+    </style>
+</head>
+<body>
+    <div class="install-hint">Tap <img class="share-icon" src="img/share.png" /> to install me on your home screen!</div>
+    {% if trains %}
+        <h1>The next inbound train will appear on the <span class="platform">{{platform}}</span> platform.</h1>
+    {% else %}
+        <h1>No trains coming :(</h1>
+    {% endif %}
+    {% if caveat %}
+        <p id="caveat">It's going to be close, though.</p>
+    {% endif %}
+    <a id="wha" href="/colophon" onclick="window.location='/colophon';return false">Huh?</a>
+    <ul id="trains">
+    {% for train in trains %}
+        <li class="train train-{{train.branch}}" style="top:{{train.secs/6}}%;" >🚂</li>
+    {% endfor %}
+    </ul>
+<script>
+if (window.navigator.standalone === false) {
+    document.body.className += "show-hint";
+}
+
+document.ontouchmove = function(e){
+     e.preventDefault();
+};
+
+var loadedAt = (new Date()).getTime();
+var trainsNode = document.getElementById("trains");
+setInterval(function() {
+    var secsSinceLoad = ((new Date()).getTime()-loadedAt)/1000;
+    trainsNode.style.top = -secsSinceLoad/6 + "%";
+},100);
+</script>
+</body>
+</html>
